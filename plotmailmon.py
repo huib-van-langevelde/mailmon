@@ -1,10 +1,12 @@
-#!/usr/local/bin/python
+#!/usr/local/bin/python3
 
 '''
 version 120815 Working to display minimum/day
 version 171031
+version 200206 display min
+version 200213 python3
 '''
-version = 'v2 171128 introduce pandas etc'
+version = 'v5 200213 python3'
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -94,7 +96,7 @@ def GetArgs():
                     help='window for display')
     parser.add_argument('-n','--noupdate', action = 'store_true',
                    help='work with local data')
-    parser.add_argument('-m','--mode', choices=['todo','in','avg','weekd'],
+    parser.add_argument('-m','--mode', choices=['todo','in','avg','min','max','weekd'],
                         default = 'todo',
                         help='plot todo, inflow or averages')
     parser.add_argument('-s','--scale', choices=['linear','log','root'],
@@ -122,7 +124,7 @@ def readmonfiles():
     mons = os.listdir(mondir)
     for monfile in mons:
         if (os.path.isfile(mondir+monfile) and (monfile.find('HuibMail')>=0)):
-            measf = open( mondir+monfile, 'rU')
+            measf = open( mondir+monfile, 'r')
             tmp = pd.read_csv(mondir+monfile,header=None,\
                 parse_dates=[[0,1]], infer_datetime_format=True, dayfirst=True, index_col=0)
                 #apparently names does not work with combining dates
@@ -194,7 +196,7 @@ def accumdt( meas ):
     iref = 0
     mailjin = 0; mailjout = 0; mailmin = 0; mailmout = 0
     
-    t0 = pd.datetime(1963,8,8) #assuming I did not get mail before that
+    t0 = dt.datetime(1963,8,8) #assuming I did not get mail before that
     ymdl = []
     jin = []; jout = []; mout = []; min = []
     mcur = 0; jcur = 0; mlast = 0; jlast = 0
@@ -204,7 +206,7 @@ def accumdt( meas ):
         if t0.date() != idx.date():
             mailjin = 0; mailjout = 0; mailmin = 0; mailmout = 0
             if ( idx < t0):
-               print 'Huhh?: ',idx,t0
+               print('Huhh?: ',idx,t0)
             t0 = idx
         else:
             jlast = jcur
@@ -280,13 +282,13 @@ def maxrangepd( t, y1, y2 ):
     
 def statdates( measp ):
     
-    print measp.describe()
+    print(measp.describe())
     return
 
 def plotdates_pd( measp ):
     #print meas['index']
     
-    print 'scale',opts.scale
+    print('scale',opts.scale)
     dolog = False
     if (opts.scale == 'log'): dolog=True
     if (opts.mode == 'todo' or opts.mode == 'in'):
@@ -313,14 +315,14 @@ def plotdates_pd( measp ):
             bx.legend(['jin','jout','min','mout'],\
                 loc='upper center', bbox_to_anchor=(0.5, -0.07), ncol=2, fontsize=8) 
         else:
-            print 'STUB1'   
+            print('STUB1')   
             
         shade = simpledusk2dawn(datemin, datemax)
         for i in range(len(shade)):
             #print 'shades:', shade[i]['start'],shade[i]['end']
             pl.axvspan(shade[i]['start'],shade[i]['end'],fc=shade[i]['color'],alpha=0.15, ec='none')
 
-    elif opts.mode == 'avg':
+    elif (opts.mode == 'avg' or opts.mode == 'min'):
         bx = measp['jall'].resample('D').min().plot(label='jmintodo',\
             xlim=(datemin,datemax), color='navy')
         measp['mall'].resample('D').min().plot(label='mmintodo',color='red')
@@ -328,14 +330,14 @@ def plotdates_pd( measp ):
         measp['min'].resample('D').max().plot(label='maxmin', color='indianred')
         bx.legend(['jall min','mall min','jin max','min max'],\
             loc='upper center', bbox_to_anchor=(0.5, -0.07), ncol=2, fontsize=8)                    
-        #pl.legend()
+        #pl.legend()    
     elif opts.mode == 'weekd':
         avgall = measp.groupby((measp.index.dayofweek)*24. + (measp.index.hour))['jall','mall','jin','min'].mean()
         bx = avgall.plot(color=['navy','red','slateblue','indianred'],logy=dolog)
         bx.legend(['jall','mall','jin','min'],\
             loc='upper center', bbox_to_anchor=(0.5, -0.07), ncol=2, fontsize=8)   
     else:
-        print 'STUB2'   
+        print('STUB2')   
 
     box = bx.get_position()
     bx.set_position([box.x0-0.1*box.width, box.y0 + box.height * 0.2,\
@@ -355,7 +357,7 @@ def plotdates_pd( measp ):
 def plotcomp( measp, measl ):
     #print meas['index']
     
-    print 'plots 2 scale',opts.scale
+    print('plots 2 scale',opts.scale)
     dolog = False
     if (opts.scale == 'log'): dolog=True
     if (opts.mode == 'todo' or opts.mode == 'in'):
@@ -394,7 +396,7 @@ def plotcomp( measp, measl ):
             bx.legend(['this','1y ago'],\
                 loc='upper center', bbox_to_anchor=(0.5, -0.07), ncol=2, fontsize=8) 
         else:
-            print 'STUB1'   
+            print('STUB1')   
             
         shade = simpledusk2dawn(datemin, datemax)
         for i in range(len(shade)):
@@ -427,7 +429,7 @@ if (not opts.noupdate and not opts.readdump):
         command = 'rsync -av  langevelde@maclangevelde5.nfra.nl:Mailmon/ '+mondir
     else:
         command = 'rsync -av  '+rootdir+'/Mailmon/ '+ mondir
-    print command
+    print(command)
     os.system(command)
 if debug: print('Done syncing')
 if (opts.readdump):
@@ -449,7 +451,7 @@ if (opts.dumpdata):
     meas.to_csv('mailstat.csv')
     if debug: print('Finished dump')
 else:
-    print opts.window,meas.index.min(),meas.index.max()
+    print(opts.window,meas.index.min(),meas.index.max())
     datemin, datemax = datewindow(opts.window,meas.index.min(),meas.index.max())
     #lastmin = datemin-dt.timedelta(days=365)
     #lastmax = datemax-dt.timedelta(days=365)
@@ -462,13 +464,13 @@ else:
         mask2 = (meas2.index > datemin) & (meas2.index <= datemax)
         measl = meas2.loc[mask2]
         #print measl.describe()
-        print measl.index.min()
+        print(measl.index.min())
         #print 'About to plot'
         plotcomp( measp, measl )
     #print(measp.loc[:,['jall','mall','jin','min']].describe())
 
     elif (opts.benchmark):
-        print 'Do a benchmark stat'
+        print('Do a benchmark stat')
         statdates( measp )
     else:
         plotdates_pd( measp )
