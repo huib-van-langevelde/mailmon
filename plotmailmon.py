@@ -125,13 +125,16 @@ def readmonfiles():
     for monfile in mons:
         if (os.path.isfile(mondir+monfile) and (monfile.find('HuibMail')>=0)):
             measf = open( mondir+monfile, 'r')
-            tmp = pd.read_csv(mondir+monfile,header=None,\
-                parse_dates=[[0,1]], infer_datetime_format=True, dayfirst=True, index_col=0)
+            try:
+                tmp = pd.read_csv(mondir+monfile,header=None,\
+                    parse_dates=[[0,1]], infer_datetime_format=True, dayfirst=True, index_col=0)
                 #apparently names does not work with combining dates
                 #names=['date','jall','jdel','jnew','jflg','mall','mdel','mnew','mflg'])
-            tmp.columns = ['jall','jdel','jnew','jflg','mall','mdel','mnew','mflg']
-            tmp.index.name = 'date'
-            #print tmp
+                tmp.columns = ['jall','jdel','jnew','jflg','mall','mdel','mnew','mflg']
+                tmp.index.name = 'date'
+                #print tmp
+            except:
+                print(monfile,' seems corrupted')
             measl.append(tmp)
             measf.close()
             #meas = pd.concat(measl)
