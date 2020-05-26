@@ -29,7 +29,7 @@ import matplotlib.ticker as ticker
 #import numpy as np
 
 #print os.environ['HOME'], os.environ['USER'], os.environ['HOST']
-print(os.environ)
+#print(os.environ)
 rootdir = os.environ['HOME']
 host = os.environ['HOST'].split('.')[0]
 debug = True
