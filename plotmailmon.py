@@ -5,13 +5,14 @@ version 120815 Working to display minimum/day
 version 171031
 version 200206 display min
 version 200213 python3
+version 230901 back to action, som tk, ticker stuff is deprecated
 '''
 version = 'v5 200213 python3'
 
 import matplotlib
-matplotlib.use('TkAgg')
+#matplotlib.use('TkAgg')
 #matplotlib.use('WxAgg')
-#matplotlib.use('macosx')
+matplotlib.use('macosx')
 import argparse as ap
 import datetime as dt
 import matplotlib.pyplot as pl
@@ -47,11 +48,12 @@ class SquareRootScale(mscale.ScaleBase):
     def __init__(self, axis, **kwargs):
         mscale.ScaleBase.__init__(self)
 
-    def set_default_locators_and_formatters(self, axis):
-        axis.set_major_locator(ticker.AutoLocator())
-        axis.set_major_formatter(ticker.ScalarFormatter())
-        axis.set_minor_locator(ticker.NullLocator())
-        axis.set_minor_formatter(ticker.NullFormatter())
+#    def set_default_locators_and_formatters(self, axis):
+#        axis.set_major_locator(ticker.AutoLocator())
+#        axis.set_major_formatter(ticker.ScalarFormatter())
+#        axis.set_minor_locator(ticker.NullLocator())
+#        axis.set_minor_formatter(ticker.NullFormatter())
+
 
     def limit_range_for_scale(self, vmin, vmax, minpos):
         return  max(0., vmin), vmax
@@ -128,7 +130,7 @@ def readmonfiles():
             measf = open( mondir+monfile, 'r')
             try:
                 tmp = pd.read_csv(mondir+monfile,header=None,\
-                    parse_dates=[[0,1]], infer_datetime_format=True, dayfirst=True, index_col=0)
+                    parse_dates=[[0,1]], dayfirst=True, index_col=0)
                 #apparently names does not work with combining dates
                 #names=['date','jall','jdel','jnew','jflg','mall','mdel','mnew','mflg'])
                 tmp.columns = ['jall','jdel','jnew','jflg','mall','mdel','mnew','mflg']
@@ -351,9 +353,9 @@ def plotdates_pd( measp ):
     #bx.set_size_inches(50.5, 10.5)
 
     #pl.xaxis.set_major_locator( loc = WeekdayLocator(byweekday=MO, tz=tz) )
-    wm = pl.get_current_fig_manager()
+    #wm = pl.get_current_fig_manager()
     #wm.resize(1400, 400)
-    wm.window.wm_geometry("1400x400+5+5")
+    #wm.window.wm_geometry("1400x400+5+5")
 
     pl.show()
     
